@@ -61,7 +61,7 @@ def create_script(
             f"# Пример по теме: {topic}\n"
             f"print('Hello, ITskeleton!')"
         ),
-        "ending": "Подписывайся на ITskeleton для новых видео по Python.",
+        "ending": "Подписывайся на ITskeleton для новых видео по другим языкам и др.",
     }
 
 
@@ -88,4 +88,165 @@ def create_storyboard(
         },
         {
             "id": 3,
-            "
+            "type": "example",
+            "text": script.get("example", ""),
+        },
+        {
+            "id": 4,
+            "type": "ending",
+            "text": script.get("ending", ""),
+        },
+    ]
+
+    if image_files:
+        for index, image in enumerate(image_files):
+            if index < len(scenes):
+                scenes[index]["image"] = str(image)
+
+    return {
+        "topic": topic,
+        "scenes": scenes,
+    }
+
+
+def create_edit_plan(
+    storyboard: dict[str, Any],
+    audio_file: str | None = None,
+) -> dict[str, Any]:
+    """
+    Создаёт план монтажа.
+    """
+
+    scenes = storyboard.get("scenes", [])
+
+    return {
+        "format": "vertical",
+        "width": 1080,
+        "height": 1920,
+        "fps": 30,
+        "codec": "h264",
+        "audio": audio_file,
+        "scenes": scenes,
+        "transitions": "cut",
+    }
+
+
+def render_from_plan(
+    plan: dict[str, Any],
+    output: str | Path | None = None,
+) -> dict[str, Any]:
+    """
+    Рендерит видео согласно edit plan.
+    """
+
+    scenes = plan.get("scenes", [])
+
+    image_files: list[str] = []
+
+    for scene in scenes:
+        image = scene.get("image")
+
+        if image:
+            image_files.append(str(image))
+
+    if not image_files:
+        raise ValueError(
+            "В edit plan нет изображений для рендера."
+        )
+
+    audio_file = plan.get("audio")
+
+    if output is None:
+        output = video_dir() / "itskeleton_video.mp4"
+    else:
+        output = Path(output)
+
+    return render_video_file(
+        image_files=image_files,
+        audio_file=audio_file,
+        output=output,
+    )
+
+
+def run_pipeline(
+    topic: str,
+    image_files: list[str] | None = None,
+    audio_file: str | None = None,
+    output: str | Path | None = None,
+    language: str = "python",
+    duration: int = 40,
+) -> dict[str, Any]:
+    """
+    Полный pipeline:
+
+    тема
+      ↓
+    сценарий
+      ↓
+    storyboard
+      ↓
+    edit plan
+      ↓
+    FFmpeg
+      ↓
+    MP4
+    """
+
+    script = create_script(
+        topic=topic,
+        language=language,
+        duration=duration,
+    )
+
+    storyboard = create_storyboard(
+        script=script,
+        image_files=image_files,
+    )
+
+    plan = create_edit_plan(
+        storyboard=storyboard,
+        audio_file=audio_file,
+    )
+
+    result = render_from_plan(
+        plan=plan,
+        output=output,
+    )
+
+    return {
+        "ok": True,
+        "script": script,
+        "storyboard": storyboard,
+        "edit_plan": plan,
+        "video": result,
+    }
+
+
+def save_pipeline_result(
+    result: dict[str, Any],
+    filename: str = "pipeline_result.json",
+) -> Path:
+    """
+    Сохраняет результат pipeline в JSON.
+    """
+
+    path = video_dir() / filename
+
+    path.write_text(
+        json.dumps(
+            result,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    return path
+
+
+def get_video_info(path: str | Path) -> dict[str, Any]:
+    """
+    Возвращает информацию о готовом видео.
+    """
+
+    return ffprobe(path)
