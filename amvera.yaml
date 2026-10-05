@@ -1,1 +1,14 @@
-6
+meta:
+  environment: python
+  toolchain:
+    name: pip
+    version: "3.11"
+
+build:
+  requirementsPath: requirements.txt
+  useCache: false
+
+run:
+  command: uvicorn server:app --host 0.0.0.0 --port 80 --proxy-headers
+  containerPort: 80
+  persistenceMount: /data
