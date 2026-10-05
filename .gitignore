@@ -1,1 +1,53 @@
-6
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# TikTok tokens
+/data/tiktok_tokens.json
+/data/tiktok_tokens.tmp
+
+# Generated videos
+/data/videos/
+/videos/
+
+# Temporary files
+/tmp/
+/tmp_*/
+*.tmp
+
+# FFmpeg temporary files
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python test/cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Local secrets
+secrets/
+*.key
+*.pem
