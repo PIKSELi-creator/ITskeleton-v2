@@ -9,12 +9,7 @@ from typing import Any, Optional
 from urllib.parse import urlencode
 
 
-import json
-import os
-import secrets
-from pathlib import Path
-from typing import Any, Optional
-from urllib.parse import urlencode
+
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, Request
